@@ -1,0 +1,17 @@
+{
+    "name": "cs278/twig-ext-inline-macro",
+    "description": "Twig extension to add support for compile time macros.",
+    "keywords": ["twig", "macro", "templating"],
+    "license": "MIT",
+    "require": {
+        "php": ">= 5.4",
+        "twig/twig": "~1"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^4.8",
+        "fabpot/php-cs-fixer": "^1.10"
+    },
+    "scripts": {
+        "cs": "php-cs-fixer fix ."
+    }
+}
