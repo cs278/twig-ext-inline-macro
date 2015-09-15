@@ -1,0 +1,19 @@
+--TEST--
+inline macro tag
+--TEMPLATE--
+{% macro foo1() %}foo1{% endmacro %}
+{% macro foo2(x, y) inline %}foo2 {{ x }}x{{ y }} = {{ x * y }}{% endmacro %}
+{% import _self as test %}
+{{ test.foo1() }}
+{{ test.foo2(24, 10) }}
+{{ test.foo2(240, 100) }}
+{{ test.foo2(bar.x, bar.y) }}
+--DATA--
+return array(
+    'bar' => array('x' => 16, 'y' => 4),
+)
+--EXPECT--
+foo1
+foo2 24x10 = 240
+foo2 240x100 = 24000
+foo2 16x4 = 64
