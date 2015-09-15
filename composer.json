@@ -13,5 +13,10 @@
     },
     "scripts": {
         "cs": "php-cs-fixer fix ."
+    },
+    "autoload": {
+        "psr-4": {
+            "Cs278\\TwigInlineMacro\\": "src/"
+        }
     }
 }
