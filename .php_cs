@@ -1,7 +1,7 @@
 <?php
 
 $header = <<<EOF
-This file is part of the Twig Inline Macro Extension package.
+This file is part of the Twig Inline Optimization Extension package.
 
 (c) Chris Smith <chris@cs278.org>
 

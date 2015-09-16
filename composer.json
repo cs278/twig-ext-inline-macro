@@ -1,7 +1,7 @@
 {
-    "name": "cs278/twig-ext-inline-macro",
-    "description": "Twig extension to add support for compile time macros.",
-    "keywords": ["twig", "macro", "templating"],
+    "name": "cs278/twig-ext-inline-optimzation",
+    "description": "Twig extension to perform various inline optimizations.",
+    "keywords": ["twig", "templating"],
     "license": "MIT",
     "require": {
         "php": ">= 5.4",
@@ -16,7 +16,7 @@
     },
     "autoload": {
         "psr-4": {
-            "Cs278\\TwigInlineMacro\\": "src/"
+            "Cs278\\TwigInlineOptization\\": "src/"
         }
     }
 }

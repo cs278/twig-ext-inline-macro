@@ -1,6 +1,5 @@
-Twig Inline Macro Extension
-===========================
+Twig Inline Optimization Extension
+==================================
 
-This extension adds support for a new type of macro definition which is
-substituted into the template at compiler time, rather than being evaluated at
-run time. In essence compiler time copy-and-paste.
+This extension aims to imporve performance of Twig templates by making various
+inline optimizations.
