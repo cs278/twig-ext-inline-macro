@@ -60,6 +60,7 @@ class InlineMacroNodeVisitor implements \Twig_NodeVisitorInterface
         //     expr: Twig_Node_Expression_Constant(value: 'macros.twig')
         //     var: Twig_Node_Expression_AssignName(name: '__internal_e2cec78610cd371ce8d380dc4fb3c52cc8fcdd94a6b06a09e0fc2001e583a63a', is_defined_test: false, ignore_strict_check: false, always_defined: true)
         // )
+        //
 
 
 

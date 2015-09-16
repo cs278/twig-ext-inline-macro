@@ -35,7 +35,8 @@ class InlineMacroExtension extends \Twig_Extension
     public function getNodeVisitors()
     {
         return [
-            new InlineMacroNodeVisitor(),
+            $macroCollector = new NodeVisitor\MacroImportCollector(),
+            new NodeVisitor\MacroInliner($macroCollector),
         ];
     }
 }
