@@ -1,0 +1,14 @@
+--TEST--
+Test sandbox tag
+--CONDITION--
+false
+--TEMPLATE--
+{% macro foo() inline %}
+{% sandbox %}
+    {% include 'include.twig' ignore missing %}
+{% endsandbox %}
+{% endmacro %}
+{{ _self.foo() }}
+--DATA--
+return array()
+--EXPECT--

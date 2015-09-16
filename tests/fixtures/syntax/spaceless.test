@@ -1,0 +1,20 @@
+--TEST--
+Test spaceless tag
+--TEMPLATE--
+{% macro foo() inline %}
+{% spaceless %}
+<ul>
+    <li>
+        <p>Foo</p>
+    </li>
+    <li>
+        <p>Bar</p>
+    </li>
+</ul>
+{% endspaceless %}
+{% endmacro %}
+{{ _self.foo() }}
+--DATA--
+return array()
+--EXPECT--
+<ul><li><p>Foo</p></li><li><p>Bar</p></li></ul>

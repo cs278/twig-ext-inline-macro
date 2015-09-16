@@ -1,0 +1,13 @@
+--TEST--
+Test invalid filter tag
+--TEMPLATE--
+{% macro foo() inline %}
+{% filter upper %}
+Hello World
+{% endfilter %}
+{% endmacro %}
+{{ _self.foo() }}
+--DATA--
+return array()
+--EXCEPTION--
+Twig_Error_Syntax: You cannot use the "block()" function or the "filter" tag inside an inline macro in "index.twig" at line 3

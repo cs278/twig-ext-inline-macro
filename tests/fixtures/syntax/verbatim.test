@@ -1,0 +1,27 @@
+--TEST--
+Test verbatim tag
+--TEMPLATE--
+{% macro foo() inline %}
+{% verbatim %}
+<ul>
+    <li>
+        <p>{{ foo }}</p>
+    </li>
+    <li>
+        <p>{{ bar }}</p>
+    </li>
+</ul>
+{% endverbatim %}
+{% endmacro %}
+{{ _self.foo() }}
+--DATA--
+return array()
+--EXPECT--
+<ul>
+    <li>
+        <p>{{ foo }}</p>
+    </li>
+    <li>
+        <p>{{ bar }}</p>
+    </li>
+</ul>

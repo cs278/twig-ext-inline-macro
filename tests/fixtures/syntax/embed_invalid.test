@@ -1,0 +1,8 @@
+--TEST--
+Test filter tag
+--TEMPLATE--
+{% macro foo() inline %}
+{% embed "blocks.twig" %}{% endembed %}
+{% endmacro %}
+--EXCEPTION--
+Twig_Error_Syntax: You cannot use the "embed" tag inside an inline macro in "index.twig" at line 3

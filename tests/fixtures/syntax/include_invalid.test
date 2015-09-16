@@ -1,0 +1,10 @@
+--TEST--
+Test invalid include tag (with ignore missing)
+--TEMPLATE--
+{% macro foo() inline %}
+    {% include 'include.twig' %}
+{% endmacro %}
+--TEMPLATE(include.twig)--
+Knock knock
+--EXCEPTION--
+Twig_Error_Syntax: You cannot use the "include" tag without the "only" attribute inside an inline macro in "index.twig" at line 3

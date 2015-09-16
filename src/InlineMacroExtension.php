@@ -13,6 +13,13 @@ namespace Cs278\TwigInlineMacro;
 
 class InlineMacroExtension extends \Twig_Extension
 {
+    private $parserMode;
+
+    public function __construct($mode)
+    {
+        $this->parserMode = (int) $mode;
+    }
+
     public function getName()
     {
         return 'inline_macro';
@@ -21,7 +28,7 @@ class InlineMacroExtension extends \Twig_Extension
     public function getTokenParsers()
     {
         return [
-            new InlineMacroTokenParser(),
+            new InlineMacroTokenParser($this->parserMode),
         ];
     }
 

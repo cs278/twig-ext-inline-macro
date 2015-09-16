@@ -1,0 +1,36 @@
+--TEST--
+Test different calling conventions
+--TEMPLATE--
+{% macro self() inline %}
+self(): {{ isInlined() ? 'inline' : 'macro' }}
+{% endmacro %}
+
+{# --- #}
+
+{{- _self.self() -}}
+
+{% import _self as me %}
+
+{{- me.self() -}}
+
+{% import 'macros.twig' as helpers %}
+
+{{- helpers.imported() -}}
+
+{% from 'macros.twig' import imported as aliased %}
+
+{{- 'aliased: ' ~ aliased() -}}
+
+--TEMPLATE(macros.twig)--
+{% macro imported() inline %}
+imported(): {{ isInlined() ? 'inline' : 'macro' }}
+{% endmacro %}
+--DATA--
+return array()
+--CONFIG--
+return array('optimizations' => 0)
+--EXPECT--
+self(): inline
+self(): inline
+imported(): inline
+aliased: imported(): inline

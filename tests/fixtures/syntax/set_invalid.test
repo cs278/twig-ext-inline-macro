@@ -1,0 +1,8 @@
+--TEST--
+Test forbidden set tag
+--TEMPLATE--
+{% macro foo() inline %}
+{% set foo = 'bar' %}
+{% endmacro %}
+--EXCEPTION--
+Twig_Error_Syntax: You cannot use the "set" tag inside an inline macro in "index.twig" at line 3

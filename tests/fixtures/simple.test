@@ -1,8 +1,8 @@
 --TEST--
 inline macro tag
 --TEMPLATE--
-{% macro foo1() %}foo1{% endmacro %}
-{% macro foo2(x, y) inline %}foo2 {{ x }}x{{ y }} = {{ x * y }}{% endmacro %}
+{% macro foo1() %}foo1 {{ isInlined() ? 'inline' : 'macro' }}{% endmacro %}
+{% macro foo2(x, y) inline %}foo2 {{ x }}x{{ y }} = {{ x * y }} {{ isInlined() ? 'inline' : 'macro' }}{% endmacro %}
 {% import _self as test %}
 {{ test.foo1() }}
 {{ test.foo2(24, 10) }}
@@ -13,7 +13,7 @@ return array(
     'bar' => array('x' => 16, 'y' => 4),
 )
 --EXPECT--
-foo1
-foo2 24x10 = 240
-foo2 240x100 = 24000
-foo2 16x4 = 64
+foo1 macro
+foo2 24x10 = 240 inline
+foo2 240x100 = 24000 inline
+foo2 16x4 = 64 inline

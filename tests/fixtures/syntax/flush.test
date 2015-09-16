@@ -1,0 +1,12 @@
+--TEST--
+Test flush tag
+--TEMPLATE--
+{% macro foo() inline %}
+{{ 'moo' }}
+{% flush %}
+{% endmacro %}
+{{ _self.foo() }}
+--DATA--
+return array()
+--EXPECT--
+moo

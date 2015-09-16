@@ -1,0 +1,11 @@
+--TEST--
+Test do tag
+--TEMPLATE--
+{% macro foo() inline %}
+{% do 24 / 0 %}
+{% endmacro %}
+{{ _self.foo() }}
+--DATA--
+return array()
+--EXCEPTION--
+Twig_Error_Runtime: An exception has been thrown during the rendering of a template ("Division by zero") in "index.twig" at line 3.

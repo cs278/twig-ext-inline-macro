@@ -1,0 +1,14 @@
+--TEST--
+Test invalid use tag
+--TEMPLATE--
+{% macro wow() inline %}
+{% use 'blocks.twig' %}
+Blah {{ isInlined() ? 'inline' : 'macro' }}
+{% endmacro %}
+{{ _self.wow() }}
+--TEMPLATE(blocks.twig)--
+{% block lego %}16x1{% endblock %}
+--DATA--
+return array()
+--EXPECT--
+Blah inline

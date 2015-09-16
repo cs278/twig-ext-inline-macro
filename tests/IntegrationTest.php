@@ -16,7 +16,24 @@ class IntegrationTest extends \Twig_Test_IntegrationTestCase
     public function getExtensions()
     {
         return [
-            new InlineMacroExtension(),
+            new InlineMacroExtension(InlineMacroTokenParser::MODE_STRICT),
+        ];
+    }
+
+    public function getTwigFunctions()
+    {
+        return [
+            // Dirty function to detect if it's called from inside a macro or not.
+            new \Twig_SimpleFunction('isInlined', function() {
+                $trace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS, 3);
+                $frame = array_pop($trace);
+
+                return !empty($frame)
+                    && isset($frame['class'])
+                    && isset($frame['function'])
+                    && strpos($frame['class'], '__TwigTemplate_') === 0
+                    && $frame['function'] === 'doDisplay';
+            }),
         ];
     }
 

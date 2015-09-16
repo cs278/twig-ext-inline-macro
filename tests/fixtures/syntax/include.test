@@ -1,0 +1,27 @@
+--TEST--
+Test include tag
+--TEMPLATE--
+{% macro foo(bod) inline -%}
+    {%- include 'include0.twig' ignore missing only -%}
+    {%- include 'include1.twig' only -%}
+    {%- include 'include2.twig' with {'who': bod} only -%}
+{%- endmacro %}
+{{- _self.foo('Chuck Norris') -}}
+{{- _self.foo('Kenny') -}}
+--TEMPLATE(include1.twig)--
+Knock knock
+Who's there?
+--TEMPLATE(include2.twig)--
+{{- who }}
+{{ who }} who?
+--DATA--
+return array()
+--EXPECT--
+Knock knock
+Who's there?
+Chuck Norris
+Chuck Norris who?
+Knock knock
+Who's there?
+Kenny
+Kenny who?

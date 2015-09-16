@@ -1,0 +1,20 @@
+--TEST--
+Imported macros
+--TEMPLATE--
+{% import 'macros.twig' as helpers %}
+
+<ul>
+    {{ helpers.li('foo') }}
+    {{ helpers.li('bar') }}
+</ul>
+--TEMPLATE(macros.twig)--
+{% macro li(item) inline -%}
+<li class="{{ item|upper }}">{{ item }}</li>
+{%- endmacro %}
+--DATA--
+return array()
+--EXPECT--
+<ul>
+    <li class="FOO">foo</li>
+    <li class="BAR">bar</li>
+</ul>

@@ -1,0 +1,13 @@
+--TEST--
+Test autoescape tag
+--TEMPLATE--
+{% macro foo() inline %}
+{% autoescape 'html' %}
+{{ '<html>'|lower }}
+{% endautoescape %}
+{% endmacro %}
+{{ _self.foo() }}
+--DATA--
+return array()
+--EXPECT--
+&lt;html&gt;

@@ -1,0 +1,8 @@
+--TEST--
+Test forbidden block tag
+--TEMPLATE--
+{% macro foo() inline %}
+{% block bar %}{% endblock %}
+{% endmacro %}
+--EXCEPTION--
+Twig_Error_Syntax: You cannot use the "block" tag inside an inline macro in "index.twig" at line 3

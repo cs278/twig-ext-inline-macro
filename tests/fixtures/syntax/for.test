@@ -1,0 +1,22 @@
+--TEST--
+Test for tag
+--TEMPLATE--
+{% macro foo() inline %}
+{% for i in 1..10 %}
+{{ i }}{{ loop.index0 }}
+{% endfor %}
+{% endmacro %}
+{{ _self.foo() }}
+--DATA--
+return array()
+--EXPECT--
+10
+21
+32
+43
+54
+65
+76
+87
+98
+109
