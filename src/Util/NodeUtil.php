@@ -48,6 +48,20 @@ final class NodeUtil
             return true;
         }
 
+        if ($node instanceof \Twig_Node_Expression_Array) {
+            foreach ($node->getKeyValuePairs() as $item) {
+                if (!self::isConstantExpression($item['key'])) {
+                    return false;
+                }
+
+                if (!self::isConstantExpression($item['value'])) {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
         if (self::isEmpty($node)) {
             return true;
         }
@@ -77,6 +91,21 @@ final class NodeUtil
         if ($node instanceof \Twig_Node_Expression_Constant) {
             return $node->getAttribute('value');
         }
+
+        if ($node instanceof \Twig_Node_Expression_Array) {
+            $result = [];
+
+            foreach ($node->getKeyValuePairs() as $item) {
+                $key = self::getConstantExpressionValue($item['key']);
+                $value = self::getConstantExpressionValue($item['value']);
+
+                $result[$key] = $value;
+            }
+
+            return $result;
+        }
+
+        throw new \LogicException(sprintf("Cannot extract constant value from:\n\n%s", $node));
     }
 
     /**
