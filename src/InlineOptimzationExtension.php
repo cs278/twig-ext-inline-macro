@@ -58,6 +58,33 @@ class InlineOptimzationExtension extends \Twig_Extension
     }
 
     /** {@inheritdoc} */
+    public function getFunctions()
+    {
+        $coreFunctions = $this->coreExtension->getFunctions();
+        $functions = [];
+
+        foreach ($coreFunctions as $function) {
+            if ($function instanceof \Twig_SimpleFunction) {
+                if ($function->needsEnvironment() || $function->needsContext()) {
+                    // These cannot be deterministic.
+                    continue;
+                }
+
+                if ($function->getName() === 'max') {
+                    $overloadFunction = TwigCallable\SimpleFunction::createFromFunction($function, true);
+                }
+            }
+
+            if (isset($overloadFunction)) {
+                $functions[] = $overloadFunction;
+                $overloadFunction = null;
+            }
+        }
+
+        return $functions;
+    }
+
+    /** {@inheritdoc} */
     public function getNodeVisitors()
     {
         return [
