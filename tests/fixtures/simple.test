@@ -1,0 +1,8 @@
+--TEST--
+Simple test
+--TEMPLATE--
+{{ '  Hello World!  '|trim }}
+--DATA--
+return []
+--EXPECT--
+Hello World!
