@@ -25,26 +25,26 @@ class InlineDeterministicCallables extends \Twig_BaseNodeVisitor
      */
     protected function doEnterNode(\Twig_Node $node, \Twig_Environment $env)
     {
+        $twigCallable = $twigArguments = null;
+
         if ($node instanceof \Twig_Node_Expression_Filter) {
-            $filter = $env->getFilter($node->getNode('filter')->getAttribute('value'));
-            $inputNode = $node->getNode('node');
-            $argumentsNode = $node->getNode('arguments');
+            $twigCallable = $env->getFilter($node->getNode('filter')->getAttribute('value'));
+            $twigArguments = iterator_to_array($node->getNode('arguments'));
 
-            if ($this->canInlineFilter($node, $env)) {
-                $arguments = [];
-                $arguments[] = NodeUtil::getConstantExpressionValue($inputNode);
+            array_unshift($twigArguments, $node->getNode('node'));
+        }
 
-                if (!NodeUtil::isEmpty($argumentsNode)) {
-                    $arguments = array_merge($arguments, NodeUtil::getConstantExpressionValue($argumentsNode));
-                }
+        if ($node instanceof \Twig_Node_Expression_Function) {
+            $twigCallable = $env->getFunction($node->getAttribute('name'));
+            $twigArguments = iterator_to_array($node->getNode('arguments'));
+        }
 
-                $filterResult = call_user_func_array(
-                    $filter->getCallable(),
-                    $arguments
-                );
-
-                return NodeUtil::createConstantExpression($filterResult, $node->getLine());
-            }
+        if ($this->canInlineCallable($twigCallable, $twigArguments)) {
+            return $this->inlineCallable(
+                $twigCallable,
+                $twigArguments,
+                $node
+            );
         }
 
         return $node;
@@ -66,26 +66,94 @@ class InlineDeterministicCallables extends \Twig_BaseNodeVisitor
         return 0;
     }
 
-    private function canInlineFilter(\Twig_Node_Expression_Filter $node, \Twig_Environment $env)
+    /**
+     * Perform the dark arts of trying to inline a function/filter.
+     *
+     * @param DeterministicInterface $twigCallable
+     * @param array                  $arguments    Arguments to be passed to callable.
+     * @param \Twig_Node             $node         Twig node to be converted.
+     *
+     * @return \Twig_Node
+     */
+    private function inlineCallable(DeterministicInterface $twigCallable, array $arguments, \Twig_Node $node)
     {
-        $filter = $env->getFilter($node->getNode('filter')->getAttribute('value'));
+        $arguments = $this->normalizeArguments($arguments);
 
-        if (!$filter instanceof DeterministicInterface) {
+        if (!$twigCallable->shouldInline($arguments)) {
+            // Advised against inlining this, bailout.
+            return $node;
+        }
+
+        return NodeUtil::createConstantExpression(
+            call_user_func_array(
+                $twigCallable->getCallable(),
+                $arguments
+            ),
+            $node->getLine()
+        );
+    }
+
+    /**
+     * Is it possible to inline this callable.
+     *
+     * @param DeterministicInterface|null $twigCallable
+     * @param array|null                  $twigArguments
+     *
+     * @return bool
+     */
+    private function canInlineCallable($twigCallable = null, array $twigArguments = null)
+    {
+        if (null === $twigCallable || null === $twigArguments) {
             return false;
         }
 
-        if (!$filter->isDeterministic()) {
+        if (!$twigCallable instanceof DeterministicInterface) {
             return false;
         }
 
-        if (!NodeUtil::isConstantExpression($node->getNode('node'))) {
+        if (!$twigCallable->isDeterministic()) {
             return false;
         }
 
-        if (!NodeUtil::isConstantExpression($node->getNode('arguments'))) {
-            return false;
+        foreach ($twigArguments as $node) {
+            if (!NodeUtil::isConstantExpression($node)) {
+                return false;
+            }
         }
 
         return true;
+    }
+
+    /**
+     * Prepare arguments into a form for PHP callables.
+     *
+     * @param array $arguments
+     *
+     * @return array
+     */
+    private function normalizeArguments(array $arguments)
+    {
+        $arguments = array_map(function ($value) {
+            if ($value instanceof \Twig_Node) {
+                if (NodeUtil::isEmpty($value)) {
+                    return [null];
+                }
+
+                return (array) NodeUtil::getConstantExpressionValue($value);
+            } else {
+                return [$value];
+            }
+        }, $arguments);
+
+        $arguments = call_user_func_array('array_merge', $arguments);
+
+        // Discard nulls at the end of the arguments.
+        // This makes a difference as it replaces the default value of arguments
+        // as an example `trim(' foo ', null) === ' foo '`.
+        while (null === end($arguments)) {
+            array_pop($arguments);
+        }
+
+        return $arguments;
     }
 }
