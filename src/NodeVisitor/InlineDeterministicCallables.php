@@ -136,16 +136,14 @@ class InlineDeterministicCallables extends \Twig_BaseNodeVisitor
         $arguments = array_map(function ($value) {
             if ($value instanceof \Twig_Node) {
                 if (NodeUtil::isEmpty($value)) {
-                    return [null];
+                    return null;
                 }
 
-                return (array) NodeUtil::getConstantExpressionValue($value);
+                return NodeUtil::getConstantExpressionValue($value);
             } else {
-                return [$value];
+                return $value;
             }
         }, $arguments);
-
-        $arguments = call_user_func_array('array_merge', $arguments);
 
         // Discard nulls at the end of the arguments.
         // This makes a difference as it replaces the default value of arguments
