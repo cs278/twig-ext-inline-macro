@@ -13,5 +13,7 @@ namespace Cs278\TwigInlineOptization\TwigCallable;
 
 interface DeterministicInterface
 {
+    public function getCallable();
     public function isDeterministic();
+    public function shouldInline(array $arguments);
 }

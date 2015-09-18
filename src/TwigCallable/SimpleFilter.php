@@ -27,4 +27,9 @@ class SimpleFilter extends \Twig_SimpleFilter implements DeterministicInterface
         return isset($this->options['deterministic'])
             && $this->options['deterministic'] === true;
     }
+
+    public function shouldInline(array $arguments)
+    {
+        return true;
+    }
 }
