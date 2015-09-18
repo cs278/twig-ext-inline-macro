@@ -16,6 +16,7 @@ namespace Cs278\TwigInlineOptization\Test;
  *
  * @author Fabien Potencier <fabien@symfony.com>
  * @author Karma Dordrak <drak@zikula.org>
+ * @author Chris Smith <chris@cs278.org>
  */
 abstract class AstIntegrationTestCase extends \PHPUnit_Framework_TestCase
 {
@@ -59,9 +60,9 @@ abstract class AstIntegrationTestCase extends \PHPUnit_Framework_TestCase
     /**
      * @dataProvider getTests
      */
-    public function testIntegration($file, $message, $condition, $templates, $exception, $outputs)
+    public function testIntegration($file, $message, $condition, $templates, $exception, $config, $expected)
     {
-        $this->doIntegrationTest($file, $message, $condition, $templates, $exception, $outputs);
+        $this->doIntegrationTest($file, $message, $condition, $templates, $exception, $config, $expected);
     }
 
     public function getTests($name)
@@ -76,29 +77,31 @@ abstract class AstIntegrationTestCase extends \PHPUnit_Framework_TestCase
 
             $test = file_get_contents($file->getRealpath());
 
-            if (preg_match('/--TEST--\s*(.*?)\s*(?:--CONDITION--\s*(.*))?\s*((?:--TEMPLATE(?:\(.*?\))?--(?:.*?))+)\s*(?:--DATA--\s*(.*))?\s*--EXCEPTION--\s*(.*)/sx', $test, $match)) {
+            if (preg_match('/--TEST--\s*(.*?)\s*(?:--CONDITION--\s*(.*))?\s*((?:--TEMPLATE--(?:.*?))+)\s*(?:--CONFIG--\s*(.*))?--EXCEPTION--\s*(.*)/sx', $test, $match)) {
                 $message = $match[1];
                 $condition = $match[2];
                 $templates = $this->parseTemplates($match[3]);
+                $config = $match[4];
                 $exception = $match[5];
-                $outputs = [[null, $match[4], null, '']];
-            } elseif (preg_match('/--TEST--\s*(.*?)\s*(?:--CONDITION--\s*(.*))?\s*((?:--TEMPLATE(?:\(.*?\))?--(?:.*?))+)--DATA--.*?--EXPECT--.*/s', $test, $match)) {
+                $expected = '';
+            } elseif (preg_match('/--TEST--\s*(.*?)\s*(?:--CONDITION--\s*(.*))?\s*((?:--TEMPLATE--(?:.*?))+)\s*(?:--CONFIG--\s*(.*))?--EXPECT--\s*(.*)/s', $test, $match)) {
                 $message = $match[1];
                 $condition = $match[2];
                 $templates = $this->parseTemplates($match[3]);
                 $exception = false;
-                preg_match_all('/--DATA--(.*?)(?:--CONFIG--(.*?))?--EXPECT--(.*?)(?=\-\-DATA\-\-|$)/s', $test, $outputs, PREG_SET_ORDER);
+                $config = $match[4];
+                $expected = $match[5];
             } else {
                 throw new \InvalidArgumentException(sprintf('Test "%s" is not valid.', str_replace($fixturesDir.'/', '', $file)));
             }
 
-            $tests[] = [str_replace($fixturesDir.'/', '', $file), $message, $condition, $templates, $exception, $outputs];
+            $tests[] = [str_replace($fixturesDir.'/', '', $file), $message, $condition, $templates, $exception, $config, $expected];
         }
 
         return $tests;
     }
 
-    protected function doIntegrationTest($file, $message, $condition, $templates, $exception, $outputs)
+    protected function doIntegrationTest($file, $message, $condition, $templates, $exception, $config, $expected)
     {
         if ($condition) {
             eval('$ret = '.$condition.';');
@@ -109,93 +112,89 @@ abstract class AstIntegrationTestCase extends \PHPUnit_Framework_TestCase
 
         $loader = new \Twig_Loader_Array($templates);
 
-        foreach ($outputs as $i => $match) {
-            $config = array_merge([
-                'cache' => false,
-                'strict_variables' => true,
-                'autoescape' => false,
-            ], $match[2] ? eval($match[2].';') : []);
-            $twig = new \Twig_Environment($loader, $config);
-            $twig->addGlobal('global', 'global');
-            foreach ($this->getExtensions() as $extension) {
-                $twig->addExtension($extension);
-            }
-
-            foreach ($this->getTwigFilters() as $filter) {
-                $twig->addFilter($filter);
-            }
-
-            foreach ($this->getTwigTests() as $test) {
-                $twig->addTest($test);
-            }
-
-            foreach ($this->getTwigFunctions() as $function) {
-                $twig->addFunction($function);
-            }
-
-            // avoid using the same PHP class name for different cases
-            // only for PHP 5.2+
-            if (PHP_VERSION_ID >= 50300) {
-                $p = new \ReflectionProperty($twig, 'templateClassPrefix');
-                $p->setAccessible(true);
-                $p->setValue($twig, '__TwigTemplate_'.hash('sha256', uniqid(mt_rand(), true), false).'_');
-            }
-
-            try {
-                $template = $twig->loadTemplate('index.twig');
-            } catch (\Exception $e) {
-                if (false !== $exception) {
-                    $this->assertSame(trim($exception), trim(sprintf('%s: %s', get_class($e), $e->getMessage())));
-
-                    return;
-                }
-
-                if ($e instanceof \Twig_Error_Syntax) {
-                    $e->setTemplateFile($file);
-
-                    throw $e;
-                }
-
-                throw new \Twig_Error(sprintf('%s: %s', get_class($e), $e->getMessage()), -1, $file, $e);
-            }
-
-            try {
-                $source = $loader->getSource('index.twig');
-                $output = $this->normalizeAst($twig->parse($twig->tokenize($source, 'index.twig')));
-            } catch (\Exception $e) {
-                if (false !== $exception) {
-                    $this->assertSame(trim($exception), trim(sprintf('%s: %s', get_class($e), $e->getMessage())));
-
-                    return;
-                }
-
-                if ($e instanceof \Twig_Error_Syntax) {
-                    $e->setTemplateFile($file);
-                } else {
-                    $e = new \Twig_Error(sprintf('%s: %s', get_class($e), $e->getMessage()), -1, $file, $e);
-                }
-
-                $output = trim(sprintf('%s: %s', get_class($e), $e->getMessage()));
-            }
-
-            if (false !== $exception) {
-                list($class) = explode(':', $exception);
-                $this->assertThat(null, new \PHPUnit_Framework_Constraint_Exception($class));
-            }
-
-            $expected = $this->normalizeAst($match[3]);
-
-            if ($expected !== $output) {
-                printf("Compiled templates that failed on case %d:\n", $i + 1);
-
-                foreach (array_keys($templates) as $name) {
-                    echo "Template: $name\n";
-                    $source = $loader->getSource($name);
-                    echo $twig->compile($twig->parse($twig->tokenize($source, $name)));
-                }
-            }
-            $this->assertEquals($expected, $output, $message.' (in '.$file.')');
+        $config = array_merge([
+            'cache' => false,
+            'strict_variables' => true,
+            'autoescape' => false,
+        ], $config ? eval($config.';') : []);
+        $twig = new \Twig_Environment($loader, $config);
+        $twig->addGlobal('global', 'global');
+        foreach ($this->getExtensions() as $extension) {
+            $twig->addExtension($extension);
         }
+
+        foreach ($this->getTwigFilters() as $filter) {
+            $twig->addFilter($filter);
+        }
+
+        foreach ($this->getTwigTests() as $test) {
+            $twig->addTest($test);
+        }
+
+        foreach ($this->getTwigFunctions() as $function) {
+            $twig->addFunction($function);
+        }
+
+        // avoid using the same PHP class name for different cases
+        // only for PHP 5.2+
+        if (PHP_VERSION_ID >= 50300) {
+            $p = new \ReflectionProperty($twig, 'templateClassPrefix');
+            $p->setAccessible(true);
+            $p->setValue($twig, '__TwigTemplate_'.hash('sha256', uniqid(mt_rand(), true), false).'_');
+        }
+
+        try {
+            $template = $twig->loadTemplate('index.twig');
+        } catch (\Exception $e) {
+            if (false !== $exception) {
+                $this->assertSame(trim($exception), trim(sprintf('%s: %s', get_class($e), $e->getMessage())));
+
+                return;
+            }
+
+            if ($e instanceof \Twig_Error_Syntax) {
+                $e->setTemplateFile($file);
+
+                throw $e;
+            }
+
+            throw new \Twig_Error(sprintf('%s: %s', get_class($e), $e->getMessage()), -1, $file, $e);
+        }
+
+        try {
+            $source = $loader->getSource('index.twig');
+            $output = $this->normalizeAst($twig->parse($twig->tokenize($source, 'index.twig')));
+        } catch (\Exception $e) {
+            if (false !== $exception) {
+                $this->assertSame(trim($exception), trim(sprintf('%s: %s', get_class($e), $e->getMessage())));
+
+                return;
+            }
+
+            if ($e instanceof \Twig_Error_Syntax) {
+                $e->setTemplateFile($file);
+            } else {
+                $e = new \Twig_Error(sprintf('%s: %s', get_class($e), $e->getMessage()), -1, $file, $e);
+            }
+
+            $output = trim(sprintf('%s: %s', get_class($e), $e->getMessage()));
+        }
+
+        if (false !== $exception) {
+            list($class) = explode(':', $exception);
+            $this->assertThat(null, new \PHPUnit_Framework_Constraint_Exception($class));
+        }
+
+        $expected = $this->normalizeAst($expected);
+
+        if ($expected !== $output) {
+            $source = $loader->getSource('index.twig');
+            fputs(STDERR, "AST:\n");
+            fputs(STDERR, $twig->parse($twig->tokenize($source, 'index.twig'))."\n");
+            fputs(STDERR, "\nCompiled template:\n");
+            fputs(STDERR, $twig->compile($twig->parse($twig->tokenize($source, 'index.twig'))));
+        }
+        $this->assertEquals($expected, $output, $message.' (in '.$file.')');
     }
 
     protected static function parseTemplates($test)
