@@ -42,8 +42,6 @@ final class NodeUtil
      */
     public static function isConstantExpression(\Twig_Node $node)
     {
-        $node = self::unwrapPointlessNodes($node);
-
         if ($node instanceof \Twig_Node_Expression_Constant) {
             return true;
         }
@@ -78,8 +76,6 @@ final class NodeUtil
      */
     public static function getConstantExpressionValue(\Twig_Node $node)
     {
-        $node = self::unwrapPointlessNodes($node);
-
         if (!self::isConstantExpression($node)) {
             throw new \InvalidArgumentException;
         }
@@ -117,8 +113,6 @@ final class NodeUtil
      */
     public static function isEmpty(\Twig_Node $node)
     {
-        $node = self::unwrapPointlessNodes($node);
-
         if ('Twig_Node' !== get_class($node)) {
             return false;
         }
@@ -132,28 +126,5 @@ final class NodeUtil
         }
 
         return true;
-    }
-
-    /**
-     * Some nodes get a bit of additional wrapping added.
-     *
-     * Twig_Node(
-     *     0: Twig_Node_Expression_Array(
-     *         0: Twig_Node_Expression_Constant(value: 0)
-     *         1: Twig_Node_Expression_Constant(value: 1)
-     *     )
-     * )
-     *
-     * @param \Twig_Node $node
-     *
-     * @return \Twig_Node
-     */
-    private static function unwrapPointlessNodes(\Twig_Node $node)
-    {
-        while ('Twig_Node' === get_class($node) && count($node) === 1 && $node->hasNode(0)) {
-            $node = $node->getNode(0);
-        }
-
-        return $node;
     }
 }
