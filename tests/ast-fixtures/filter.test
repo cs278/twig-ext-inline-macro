@@ -1,0 +1,41 @@
+--TEST--
+Basic filters
+--TEMPLATE--
+{{- ' X '|trim -}}
+{{- ' X '|trim() -}}
+{{- ' X '|trim(' ') -}}
+{{- ' X '|trim(chars) -}}
+--EXPECT--
+Twig_Node_Module(filename: 'index.twig', index: NULL, embedded_templates: array ()
+  parent:
+  body: Twig_Node_Body(
+          0: Twig_Node(
+               0: Twig_Node_Print(
+                    expr: Twig_Node_Expression_Constant(value: 'X')
+                  )
+               1: Twig_Node_Print(
+                    expr: Twig_Node_Expression_Constant(value: 'X')
+                  )
+               2: Twig_Node_Print(
+                    expr: Twig_Node_Expression_Constant(value: 'X')
+                  )
+               3: Twig_Node_Print(
+                    expr: Twig_Node_Expression_Filter(
+                            node: Twig_Node_Expression_Constant(value: ' X ')
+                            filter: Twig_Node_Expression_Constant(value: 'trim')
+                            arguments: Twig_Node(
+                                         0: Twig_Node_Expression_Name(name: 'chars', is_defined_test: false, ignore_strict_check: false, always_defined: false)
+                                       )
+                          )
+                  )
+             )
+        )
+  blocks: Twig_Node()
+  macros: Twig_Node()
+  traits: Twig_Node()
+  display_start: Twig_Node()
+  display_end: Twig_Node()
+  constructor_start: Twig_Node()
+  constructor_end: Twig_Node()
+  class_end: Twig_Node()
+)

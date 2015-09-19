@@ -1,0 +1,36 @@
+--TEST--
+Basic functions
+--TEMPLATE--
+{{- max([1, 2]) -}}
+{{- max(1, 2) -}}
+{{- max(zero, one) -}}
+--EXPECT--
+Twig_Node_Module(filename: 'index.twig', index: NULL, embedded_templates: array ()
+  parent:
+  body: Twig_Node_Body(
+          0: Twig_Node(
+               0: Twig_Node_Print(
+                    expr: Twig_Node_Expression_Constant(value: 2)
+                  )
+               1: Twig_Node_Print(
+                    expr: Twig_Node_Expression_Constant(value: 2)
+                  )
+               2: Twig_Node_Print(
+                    expr: Twig_Node_Expression_Function(name: 'max'
+                            arguments: Twig_Node(
+                                         0: Twig_Node_Expression_Name(name: 'zero', is_defined_test: false, ignore_strict_check: false, always_defined: false)
+                                         1: Twig_Node_Expression_Name(name: 'one', is_defined_test: false, ignore_strict_check: false, always_defined: false)
+                                       )
+                          )
+                  )
+             )
+        )
+  blocks: Twig_Node()
+  macros: Twig_Node()
+  traits: Twig_Node()
+  display_start: Twig_Node()
+  display_end: Twig_Node()
+  constructor_start: Twig_Node()
+  constructor_end: Twig_Node()
+  class_end: Twig_Node()
+)
