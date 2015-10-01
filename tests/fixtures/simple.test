@@ -1,8 +1,14 @@
 --TEST--
 Simple test
 --TEMPLATE--
-{{ '  Hello World!  '|trim }}
+{{ (1..max(2,3))|join('') }}
 --DATA--
 return []
 --EXPECT--
 Hello World!
+5
+1s
+{{ '  Hello World!  '|trim(' ') }}
+{{ '  Hello World!  '|trim }}
+{{ max([1, 5, 2, 1]) }}
+{{ min([1, 5, 2, 1]) }}

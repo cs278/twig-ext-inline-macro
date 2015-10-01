@@ -11,6 +11,8 @@
 
 namespace Cs278\TwigInlineOptization;
 
+use Cs278\TwigInlineOptization\Util\FunctionUtil;
+
 class InlineOptimzationExtension extends \Twig_Extension
 {
     public function __construct()
@@ -33,25 +35,26 @@ class InlineOptimzationExtension extends \Twig_Extension
     /** {@inheritdoc} */
     public function getFilters()
     {
-        $coreFilters = $this->coreExtension->getFilters();
         $filters = [];
 
-        foreach ($coreFilters as $filter) {
+        foreach ($this->coreExtension->getFilters() as $filter) {
             if ($filter instanceof \Twig_SimpleFilter) {
                 if ($filter->needsEnvironment() || $filter->needsContext()) {
                     // These cannot be deterministic.
                     continue;
                 }
 
-                if ($filter->getName() === 'trim') {
-                    $overloadFilter = TwigCallable\SimpleFilter::createFromFilter($filter, true);
+                if (FunctionUtil::isFunctionDeterministic($filter->getCallable())) {
+                    $filter = TwigCallable\SimpleFilter::createFromFilter($filter, true);
                 }
             }
 
-            if (isset($overloadFilter)) {
-                $filters[] = $overloadFilter;
-                $overloadFilter = null;
-            }
+            // We must replace all filters as the extension can declare multiple
+            // ones that override each other, this replicates the overriding
+            // behaviour. An example of this is the upper filter that usually
+            // uses `strtoupper` but if mbstring is installed uses
+            // `mb_strtoupper`.
+            $filters[] = $filter;
         }
 
         return $filters;
@@ -60,25 +63,30 @@ class InlineOptimzationExtension extends \Twig_Extension
     /** {@inheritdoc} */
     public function getFunctions()
     {
-        $coreFunctions = $this->coreExtension->getFunctions();
         $functions = [];
 
-        foreach ($coreFunctions as $function) {
+        foreach ($this->coreExtension->getFunctions() as $function) {
             if ($function instanceof \Twig_SimpleFunction) {
                 if ($function->needsEnvironment() || $function->needsContext()) {
                     // These cannot be deterministic.
                     continue;
                 }
 
-                if ($function->getName() === 'max') {
-                    $overloadFunction = TwigCallable\SimpleFunction::createFromFunction($function, true);
+                $shouldInline = null;
+
+                if ($function->getCallable() === 'range') {
+                    $shouldInline = function (array $args) {
+                        return count(call_user_func_array(
+                            $this->getCallable(),
+                            $args
+                        )) < 10;
+                    };
                 }
+
+                $function = TwigCallable\SimpleFunction::createFromFunction($function, true, $shouldInline);
             }
 
-            if (isset($overloadFunction)) {
-                $functions[] = $overloadFunction;
-                $overloadFunction = null;
-            }
+            $functions[] = $function;
         }
 
         return $functions;

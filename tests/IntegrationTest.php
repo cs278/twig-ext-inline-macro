@@ -11,7 +11,8 @@
 
 namespace Cs278\TwigInlineOptization;
 
-class IntegrationTest extends \Twig_Test_IntegrationTestCase
+//class IntegrationTest extends \Twig_Test_IntegrationTestCase
+class IntegrationTest
 {
     protected function getExtensions()
     {

@@ -60,9 +60,35 @@ final class NodeUtil
             return true;
         }
 
+        // if ($node instanceof \Twig_Node_Expression_Binary_Range) {
+        //     if (!self::isConstantExpression($node->getNode('left'))) {
+        //         return false;
+        //     }
+        //
+        //     if (!self::isConstantExpression($node->getNode('right'))) {
+        //         return false;
+        //     }
+        //
+        //     return true;
+        // }
+
         if (self::isEmpty($node)) {
             return true;
         }
+
+        // if ('Twig_Node' === get_class($node)) {
+        //     foreach ($node as $k => $subNode) {
+        //         if (!is_int($k)) {
+        //             return false;
+        //         }
+        //
+        //         if (!self::isConstantExpression($subNode)) {
+        //             return false;
+        //         }
+        //     }
+        //
+        //     return true;
+        // }
 
         return false;
     }
